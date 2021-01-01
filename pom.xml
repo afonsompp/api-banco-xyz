@@ -19,13 +19,13 @@
 	</properties>
 
 	<dependencies>
-    <!-- Dependencia do Spring MVC -->
+		<!-- Dependencia do Spring MVC -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-    <!-- Dependencias para a persistencia de dados -->
+		<!-- Dependencias para a persistencia de dados -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -44,7 +44,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-    <!-- Dependencias na utilização dos testes -->
+		<!-- Dependencias na utilização dos testes -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -64,34 +64,34 @@
 			<scope>test</scope>
 		</dependency>
 
-      <!-- Dependencias utilizadas na validação dos dados -->
+		<!-- Dependencias utilizadas na validação dos dados -->
 
 		<dependency>
-    	<groupId>org.springframework.boot</groupId>
-    	<artifactId>spring-boot-starter-validation</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-validator</artifactId>
-      <version>6.0.10.Final</version>
-    </dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>6.0.10.Final</version>
+		</dependency>
 
-    <!-- Dependencias utilizada na geração da documentação -->
+		<!-- Dependencias utilizada na geração da documentação -->
 
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
-			<version>2.6.1</version>
+			<version>2.7.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.6.1</version>
+			<version>2.7.0</version>
 		</dependency>
 
-      <!-- Dependência utilizada na geração de construtores getters e setters -->
+		<!-- Dependência utilizada na geração de construtores getters e setters -->
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
