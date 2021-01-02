@@ -94,4 +94,16 @@ public class ClientTest {
         verify(clientService, times(0)).insert(any(Client.class));
     }
 
+    @Test()
+    public void insert_400() throws Exception {
+
+        ClientDTO dto = new ClientDTO("Afonso", "afonso@.com", "123.456.789.10",
+        LocalDate.now().withDayOfMonth(LocalDate.now().getDayOfMonth() + 1));
+
+        mockMvc.perform(post(BASE_URL).content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+
+        verify(clientService, times(0)).insert(any(Client.class));
+    }
 }
