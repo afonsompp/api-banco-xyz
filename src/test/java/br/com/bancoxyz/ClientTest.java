@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.net.HttpHeaders;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.util.NestedServletException;
 import org.springframework.http.MediaType;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -77,6 +79,19 @@ public class ClientTest {
             .andExpect(jsonPath("$.dateOfBirth", is(dto.getDateOfBirth().format(formatter))));
 
         verify(clientService, times(1)).insert(any(Client.class));
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void insert_409() throws Exception {
+        ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
+        LocalDate.parse("2000-04-23"));
+        when(clientService.insert(any(Client.class))).thenThrow(new ConstraintViolationException("", null, "", ""));
+
+        mockMvc.perform(post(BASE_URL).content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isConflict());
+
+        verify(clientService, times(0)).insert(any(Client.class));
     }
 
 }
