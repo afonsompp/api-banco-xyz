@@ -20,9 +20,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<StandardError> resourceNotFound(ConstraintViolationException e,
+    public ResponseEntity<StandardError> duplicateDataConstraint(ConstraintViolationException e,
             HttpServletRequest request) {
-        String error = "Email or CPF already exist";
+        String error = "O Email ou CPF já existe nos registros do sistema!";
         HttpStatus status = HttpStatus.CONFLICT;
         StandardError err = new StandardError(Instant.now(), status.value(), error, e.getMessage(),
                 request.getRequestURI());
