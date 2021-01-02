@@ -20,7 +20,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-@PropertySource("classpath:swagger.properties")
+@PropertySource(encoding = "UTF-8", value = "classpath:swagger.properties")
 public class SwaggerConfig extends WebMvcConfigurationSupport {
 
   // Realiza o build da documentação
