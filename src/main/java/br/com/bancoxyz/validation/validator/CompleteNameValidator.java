@@ -14,6 +14,7 @@ public class CompleteNameValidator implements ConstraintValidator<CompleteNameCo
     @Override
     public boolean isValid(String name, ConstraintValidatorContext cxt) {
         return name.equals(null) ||
-        name.matches("^([a-zA-Z]{3,}\\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\\s?([a-zA-Z]{1,})?)");
+        name.matches("^([a-zA-Z]{3,}\\s[a-zA-Z]{1,}'?-?[a-zA-Z]{2,}\\s?([a-zA-Z]{3,})?"
+            + "\\s?([a-zA-Z]{3,})?\\s?([a-zA-Z]{3,})?)");
     }
 }
