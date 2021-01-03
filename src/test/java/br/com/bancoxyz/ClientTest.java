@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.net.HttpHeaders;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -85,7 +85,7 @@ public class ClientTest {
     public void insert_409() throws Exception {
         ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
         LocalDate.parse("2000-04-23"));
-        when(clientService.insert(any(Client.class))).thenThrow(new ConstraintViolationException("", null, "", ""));
+        when(clientService.insert(any(Client.class))).thenThrow(new DataIntegrityViolationException(""));
 
         mockMvc.perform(post(BASE_URL).content(objectMapper.writeValueAsString(dto))
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
