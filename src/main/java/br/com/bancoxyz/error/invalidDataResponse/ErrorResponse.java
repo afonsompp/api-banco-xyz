@@ -1,4 +1,4 @@
-package br.com.bancoxyz.error;
+package br.com.bancoxyz.error.invalidDataResponse;
 
 import java.util.List;
 
