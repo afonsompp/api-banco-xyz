@@ -1,0 +1,1025 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>api-spring</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+	
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left style">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#criando-nossa-api-rest-com-spring">Criando nossa API REST com Spring!</a>
+<ul>
+<li><a href="#o-que-é-esse-tal-de-spring">1. O que é esse tal de Spring?</a></li>
+<li><a href="#nosso-objetivo">2. Nosso objetivo</a>
+<ul>
+<li><a href="#desafio-a-ser-desenvolvido">2.1. Desafio a ser desenvolvido</a></li>
+</ul>
+</li>
+<li><a href="#pensando-na-solução">3. Pensando na solução</a>
+<ul>
+<li><a href="#tecnologias-que-serão-utilizadas">3.1. Tecnologias que serão utilizadas</a></li>
+<li><a href="#definindo-nossas-regras-de-negócio">3.2. Definindo nossas regras de negócio</a></li>
+</ul>
+</li>
+<li><a href="#colocando-a-mão-na-massa">4. Colocando a mão na massa</a>
+<ul>
+<li><a href="#criando-nossa-entidade-cliente">4.1. Criando nossa entidade Cliente</a></li>
+<li><a href="#criando-nossa-jpa-repository">4.2. Criando nossa JPA repository</a></li>
+<li><a href="#criando-a-nossa-camada-de-serviço">4.3. Criando a nossa camada de serviço</a></li>
+<li><a href="#criando-nosso-endpoint-clients">4.4. Criando nosso endpoint /clients</a></li>
+<li><a href="#testando-nossa-aplicação-em-um-banco-de-dados-postgresql">4.5. Testando nossa aplicação em um banco de dados postgreSQL</a></li>
+<li><a href="#documentação-do-swagger">4.6. Documentação do Swagger</a></li>
+</ul>
+</li>
+<li><a href="#nem-só-de-post-vive-uma-api">5. Nem só de POST vive uma API</a>
+<ul>
+<li><a href="#melhorando-a-nossa-entidade-client">5.1. Melhorando a nossa entidade client</a></li>
+<li><a href="#melhorando-a-camada-de-serviço">5.2. Melhorando a camada de serviço</a></li>
+<li><a href="#dando-suporte-para-get-put-e-delete">5.3. Dando suporte para: GET, PUT e DELETE</a></li>
+<li><a href="#consultando--nossa-documentação">5.4. Consultando  nossa documentação</a></li>
+<li><a href="#indo-um-pouquinho-mais-além">5.5. Indo um pouquinho mais além</a></li>
+</ul>
+</li>
+<li><a href="#conclusão">6. Conclusão</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="criando-nossa-api-rest-com-spring">Criando nossa API REST com Spring!</h1>
+<p><strong>Autor:</strong> Afonso Mateus Prado Pinheiro<br>
+<strong>Código fonte:</strong> <a href="https://github.com/afonsoprado/api-banco-xyz">https://github.com/afonsoprado/api-banco-xyz</a><br>
+<strong>Documentação:</strong> <a href="/swagger-ui.html">documentação swagger</a></p>
+<h2 id="o-que-é-esse-tal-de-spring">1. O que é esse tal de Spring?</h2>
+<p>O <a href="https://spring.io/">Spring</a> é um framework open source destinado ao desenvolvimento de aplicações em Java  com o objetivo de melhorar a produtividade, assim agilizando a criação de aplicação corporativas. Ele fornece vários recursos e automatiza várias tarefas e configurações. Para realizar essas tarefas o Spring usa conceitos de <strong>Injeção de dependência</strong>,  Desenvolvimento baseado em Interfaces e <a href="https://pt.wikipedia.org/wiki/Plain_Old_Java_Objects">POJOs</a> nos dando flexibilidade segurança além de um desenvolvimento com um código limpo, fácil de ser mantido.</p>
+<h2 id="nosso-objetivo">2. Nosso objetivo</h2>
+<p>O objetivo deste post é explicar de maneira clara como é implantado uma API REST em Spring . Como seria feito a modelagem, quais tecnologias seriam utilizadas até a implementação de cada parte da aplicação.</p>
+<h3 id="desafio-a-ser-desenvolvido">2.1. Desafio a ser desenvolvido</h3>
+<p>Nossa empresa está desenvolvendo uma API para um banco e foi passo a nós a tarefa de desenvolver o fluxo de cadastro de dados pessoais de uma pessoa. Devolvendo a resposta com o <em>status code</em> correto para o caso de sucesso e também para os de erro.<br>
+<strong>Campos obrigatórios para a realização do cadastro:</strong></p>
+<ul>
+<li>Nome</li>
+<li>E-mail</li>
+<li>CPF</li>
+<li>Data de nascimento</li>
+</ul>
+<h2 id="pensando-na-solução">3. Pensando na solução</h2>
+<p>Antes de desenvolver qualquer código, precisamos saber de maneira muito clara e objetiva o que precisamos fazer, quais serão os requisitos do projeto, como iremos resolve-los, a arquitetura a ser utilizada e as regras de negócio do projeto.</p>
+<h3 id="tecnologias-que-serão-utilizadas">3.1. Tecnologias que serão utilizadas</h3>
+<p>A escolha do ecossistema de tecnologias  que serão utilizadas na solução é uma tarefa super importante e delicada no desenvolvimento de sistemas. Como o título já indica, utilizaremos o Spring no desenvolvimento da nossa solução. Mas abaixo estarei listando as tecnologias que serão usadas e o objetivo de cada uma delas.</p>
+
+<table>
+<thead>
+<tr>
+<th>Tecnologia</th>
+<th>Para que será utilizada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Java</td>
+<td>O <a href="https://www.w3schools.com/java/java_intro.asp">Java</a> será adotado como a nossa linguagem de programação nesse projeto.</td>
+</tr>
+<tr>
+<td>Spring</td>
+<td>Utilizaremos o <a href="https://spring.io/projects/spring-boot">Spring Boot</a> para automatizar as configurações e também utilizaremos outros módulos do Spring como o <a href="https://spring.io/guides/gs/serving-web-content/">Spring MVC</a> e o <a href="https://spring.io/projects/spring-data">Spring JPA</a> para melhorar o nosso desenvolvimento.</td>
+</tr>
+<tr>
+<td>Maven</td>
+<td>Utilizaremos o <a href="https://maven.apache.org/">Maven</a> como nosso gerenciador de dependências do projeto</td>
+</tr>
+<tr>
+<td>Apache</td>
+<td>O <a href="https://maven.apache.org/install.html">Apache</a> será usado como servidor para rodar o build do nosso projeto.</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>O <a href="https://www.postgresql.org/download/">PostgreSQL</a> será utilizado como o SGBD do banco de dados do nosso projeto.</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>O <a href="https://git-scm.com/downloads">Git</a> é um um software utilizado no controle de versão dos códigos fontes utilizado nas principais empresas do mundo. Utilizaremos ele para mantermos um histórico do nosso código fonte.</td>
+</tr>
+<tr>
+<td>H2 Database</td>
+<td>O <a href="https://www.h2database.com/html/main.html">H2 Database</a> é um banco de dados embarcado cujo o funcionamento não necessita de instalação. Isso quer dizer que poderemos testar o nosso banco de dados apenas em memória.</td>
+</tr>
+<tr>
+<td>JUnit</td>
+<td>O <a href="https://junit.org/junit5/">JUnit</a> é um framework utilizado na realização de testes unitários em Java. Ele será utilizado para testarmos o endpoint da nossa aplicação.</td>
+</tr>
+<tr>
+<td>Swagger</td>
+<td><a href="http://swagger.io/">Swagger</a> é um framework que será utilizado na documentação do projeto. O Swagger permite que as anotações sejam feitas no código do projeto, dessa forma a documentação evolui junto com o projeto.</td>
+</tr>
+<tr>
+<td>Postman</td>
+<td>O <a href="https://www.postman.com/">Postman</a> O Postman é uma ferramenta que nos permite fazer requisições HTTP com todos os verbos(GET, POST, PUT, DELETE, etc…). O Postman tem várias tecnologias que podem ser utilizadas no desenvolvimento de APIs, mas utilizaremos eles apenas para testar as requisições da nossa aplicação.</td>
+</tr>
+</tbody>
+</table><h3 id="definindo-nossas-regras-de-negócio">3.2. Definindo nossas regras de negócio</h3>
+<h4 id="como-ficaria-o-diagrama-uml">Como ficaria o diagrama UML?</h4>
+<p>Como podemos ver acima, todos os campos acima representam de características uma pessoa, que no nosso contexto é um <strong>cliente</strong> do banco. Com isso em mente podemos chegar a conclusão que o cliente é uma classe do nosso projeto. Então o a representação da classe Cliente ficaria da seguinte forma:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103365706-12271380-4a97-11eb-8ac0-3e609a4dbb7b.jpg"> 
+  </p>
+<h4 id="quais-serão-as-validações-necessárias">Quais serão as validações necessárias?</h4>
+<p>Já sabemos quais são os campos que nós temos que ter para cadastrar um cliente, mas quais são as validações necessárias para que nós possamos permitir que o cadastro seja realizado com sucesso? Vamos listar abaixo os campos e as regras associadas a eles:</p>
+
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Regras de validação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nome</td>
+<td>No contexto de um banco o precisa do nome completo do cliente. Ou seja o mesmo <strong>não pode ficar em branco</strong>, <strong>deve conter pelo menos  duas palavras(Nome e Sobrenome)</strong> e <strong>ter mais que 7 caracteres</strong>(levando em consideração que na língua brasileira os nomes tem 3 letras ou mais. Assim somando o mínimo de nome e sobrenome temos 6 caracteres. somando isso com o espaço chegamos e essa regra de 7 caracteres ou mais).</td>
+</tr>
+<tr>
+<td>E-mail</td>
+<td>O e-mail é a forma na qual o banco vai entrar em contato com o cliente, enviando dados sensíveis ao cliente sobre o cadastro dele e sobre as contas associadas ao cadastro dele. Dessa forma é <strong>não podemos permitir que esse campo fique em branco</strong>, <strong>ele também deve ser válido</strong>(seguindo o padrão: [NomeDoEmail]@[Dominio].[<a href="https://en.wikipedia.org/wiki/Generic_top-level_domain">gTLDs</a>], e <strong>duplicações de E-mail também não devem ser aceitas</strong>, visto que o e-mail é algo pessoal e não compartilhado</td>
+</tr>
+<tr>
+<td>CPF</td>
+<td>O CPF é um código único destinado a pessoas físicas mantido pela receita federal, sendo um documento de importância legal no momento da abertura da conta corrente <strong>não podemos permitir que esse campo esteja em branco</strong>, assim como <strong>temos que garantir que o CPF informado é válido</strong>, e por ser um registro único para cada pessoa, <strong>não podemos permitir duplicações</strong>.</td>
+</tr>
+<tr>
+<td>Data de nascimento</td>
+<td>A data de nascimento também <strong>não pode ficar em branco</strong>, além temos garantir que a data é válida, ou seja <strong>não podemos permitir a abertura de contas de pessoas que não correspondam a idade mínima de 18 anos.</strong></td>
+</tr>
+</tbody>
+</table><blockquote>
+<p>Mesmo que segundo o <a href="https://www.bb.com.br/docs/pub/voce/dwn/ContaCorrente.pdf">artigo do banco do brasil</a> não exista uma idade mínima para a abertura de uma conta corrente, para menores de idade é necessário a a supervisão de um tutor. Então levaremos em consideração a idade mínima como a idade para abrir a conta de forma independente.</p>
+</blockquote>
+<h2 id="colocando-a-mão-na-massa">4. Colocando a mão na massa</h2>
+<p>Após termos definido de forma clara, como o nosso projeto será desenvolvido podemos finalmente começar a desenvolver a nossa solução.</p>
+<h3 id="criando-nossa-entidade-cliente">4.1. Criando nossa entidade Cliente</h3>
+<h4 id="o-modelo-da-nossa-classe">O modelo da nossa classe</h4>
+<p>O primeiro passo na criação de nossa entidade é criar a classe de domino, que contem as informações que o resto da aplicação usará para saber como trabalhar.</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Entity</span>
+<span class="token annotation punctuation">@NoArgsConstructor</span>
+<span class="token annotation punctuation">@Getter</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Client</span> <span class="token punctuation">{</span>
+  <span class="token annotation punctuation">@Id</span>
+  <span class="token annotation punctuation">@GeneratedValue</span><span class="token punctuation">(</span>strategy <span class="token operator">=</span> GenerationType<span class="token punctuation">.</span>IDENTITY<span class="token punctuation">)</span>
+  <span class="token keyword">private</span> Long id<span class="token punctuation">;</span>
+  
+  <span class="token annotation punctuation">@Column</span><span class="token punctuation">(</span>nullable <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+  <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+  
+  <span class="token annotation punctuation">@Column</span><span class="token punctuation">(</span>nullable <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">,</span> unique <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+  <span class="token keyword">private</span> String email<span class="token punctuation">;</span>
+  
+  <span class="token annotation punctuation">@Column</span><span class="token punctuation">(</span>nullable <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">,</span> unique <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+  <span class="token keyword">private</span> String cpf<span class="token punctuation">;</span>
+  
+  <span class="token annotation punctuation">@Column</span><span class="token punctuation">(</span>nullable <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">)</span>
+  <span class="token keyword">private</span> LocalDate dateOfBirth<span class="token punctuation">;</span>
+
+  <span class="token keyword">public</span> <span class="token function">Client</span><span class="token punctuation">(</span>String name<span class="token punctuation">,</span> String email<span class="token punctuation">,</span> String cpf<span class="token punctuation">,</span> 
+  LocalDate dateOfBirth<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>name <span class="token operator">=</span> name<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>email <span class="token operator">=</span> email<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>cpf <span class="token operator">=</span> cpf<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>dateOfBirth <span class="token operator">=</span> dateOfBirth<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>Na constraint <code>@Column</code>, <code>nullable = false</code> não irá permitir a persistência de campos nulos e <code>unique = true</code>  irá garantir que não acontecerá a persistência de dados duplicados.</p>
+</blockquote>
+<p>Após criarmos o nosso modelo, vamos criar nosso DTO(Data Transfer Object) para tratar os dados enviados e os dados que serão retornados pela nossa API.</p>
+<h4 id="criando-nossa-validação-customizada.">Criando nossa validação customizada.</h4>
+<p>Mas apesar do Spring através de suas dependências nos dar várias validações como <code>@NotBlank</code>,  <code>@NotNull</code>, <code>@Size</code>, <code>@Email</code>,  <code>@CPF</code>, <code>@Pattern</code>. Das validações definidas nas regras de negócio fica faltando a validação da idade mínima do cliente. Para resolver esse problema, vamos ter que criar uma constraint personalizada para isso. Eu chamarei ela de <code>@MinDateConstraint</code>.<br>
+A implementação dessa constraint ficará da seguinte maneira:</p>
+<ul>
+<li>Calsse que define a constraint:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Documented</span>
+<span class="token annotation punctuation">@Constraint</span><span class="token punctuation">(</span>validatedBy <span class="token operator">=</span> MinDateValidator<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Target</span><span class="token punctuation">(</span><span class="token punctuation">{</span> ElementType<span class="token punctuation">.</span>METHOD<span class="token punctuation">,</span> ElementType<span class="token punctuation">.</span>FIELD <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Retention</span><span class="token punctuation">(</span>RetentionPolicy<span class="token punctuation">.</span>RUNTIME<span class="token punctuation">)</span>
+<span class="token keyword">public</span> @<span class="token keyword">interface</span> <span class="token class-name">MinDateConstraint</span> <span class="token punctuation">{</span>
+
+    String <span class="token function">message</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token string">"Provide date less than minimum"</span><span class="token punctuation">;</span>
+
+    Class<span class="token operator">&lt;</span><span class="token operator">?</span><span class="token operator">&gt;</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">groups</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">int</span> <span class="token function">minAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    Class<span class="token operator">&lt;</span><span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">Payload</span><span class="token operator">&gt;</span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">payload</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">default</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+</code></pre>
+<blockquote>
+<p>Essa classe define as propriedades da nossa annotation, sendo o minAge a idade minima que será aceita.</p>
+</blockquote>
+<ul>
+<li>Classe de validação:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">MinDateValidator</span> <span class="token keyword">implements</span> <span class="token class-name">ConstraintValidator</span><span class="token operator">&lt;</span>MinDateConstraint<span class="token punctuation">,</span> LocalDate<span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+
+   <span class="token keyword">private</span> Integer minAge<span class="token punctuation">;</span>
+
+   <span class="token annotation punctuation">@Override</span>
+   <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">initialize</span><span class="token punctuation">(</span>MinDateConstraint constraint<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       minAge <span class="token operator">=</span> constraint<span class="token punctuation">.</span><span class="token function">minAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> <span class="token number">0</span> <span class="token operator">?</span> constraint<span class="token punctuation">.</span><span class="token function">minAge</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+
+   <span class="token annotation punctuation">@Override</span>
+   <span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isValid</span><span class="token punctuation">(</span>LocalDate date<span class="token punctuation">,</span> ConstraintValidatorContext cxt<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       LocalDate minDate <span class="token operator">=</span> LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">withYear</span><span class="token punctuation">(</span>LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getYear</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> minAge<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword">return</span> date <span class="token operator">==</span> null <span class="token operator">||</span> <span class="token punctuation">(</span>date<span class="token punctuation">.</span><span class="token function">isEqual</span><span class="token punctuation">(</span>minDate<span class="token punctuation">)</span> <span class="token operator">||</span> date<span class="token punctuation">.</span><span class="token function">isBefore</span><span class="token punctuation">(</span>minDate<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>Como na classe da constraint colocamos no atributo <code>int minAge() default 0</code> e estamos validando para os casos de números negativos retornarmos 0. Então se não passarmos nada ou um número negativo na  constraint, a data mínima será o dia atual.</p>
+<hr>
+<p>Também criei uma constraint para a validação de nome completo através de uma regex, mas isso foi uma escolha pessoal para não sujar o código, o resultado seria o mesmo usando o <code>@Pattern</code>.<br>
+A regex utilizada foi a seguinte:<br>
+^([a-zA-Z]{3,}\s[a-zA-Z]{1,}’?-?[a-zA-Z]{2,}\s?([a-zA-Z]{3,})?\s?([a-zA-Z]{3,})?\s?([a-zA-Z]{3,})?)</p>
+</blockquote>
+<h4 id="criando-os-dto-da-entidade-client">Criando os DTO da entidade Client</h4>
+<p>Agora que já temos tudo que precisamos para validar os campos, podemos finalmente criar nosso ClientDTO, para tratar os dados recebidos e enviados pela nossa API.<br>
+A classe <code>ClienteDTO</code> será responsável por determinar como será aceito os dados enviados para nossa API.</p>
+<ul>
+<li>Implementação da classe <code>ClientDTO</code>:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Getter</span>
+<span class="token annotation punctuation">@AllArgsConstructor</span>
+<span class="token annotation punctuation">@NoArgsConstructor</span>
+<span class="token annotation punctuation">@ApiModel</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"Client"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ClientDTO</span> <span class="token punctuation">{</span>
+   <span class="token annotation punctuation">@NotBlank</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{name.not.blank}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@Size</span><span class="token punctuation">(</span>min <span class="token operator">=</span> <span class="token number">7</span><span class="token punctuation">,</span> max <span class="token operator">=</span> <span class="token number">50</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"{name.size}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@CompleteNameConstraint</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{name.pattern}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.name}"</span><span class="token punctuation">,</span>
+   position <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"Bob Brown"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+   <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+
+   <span class="token annotation punctuation">@NotBlank</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{email.not.blank}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@Email</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{email.invalid}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.email}"</span><span class="token punctuation">,</span>
+   position <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"exemple@exemple.com"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+   <span class="token keyword">private</span> String email<span class="token punctuation">;</span>
+
+   <span class="token annotation punctuation">@NotBlank</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{cpf.not.blank}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@CPF</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{cpf.invalid}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.email}"</span><span class="token punctuation">,</span>
+   position <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"146.674.500-29"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+   <span class="token keyword">private</span> String cpf<span class="token punctuation">;</span>
+
+   <span class="token annotation punctuation">@NotNull</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{date.not.null}"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@MinDateConstraint</span><span class="token punctuation">(</span>message <span class="token operator">=</span> <span class="token string">"{date.custom.min.date}"</span><span class="token punctuation">,</span> minAge <span class="token operator">=</span> <span class="token number">18</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@JsonFormat</span><span class="token punctuation">(</span>shape <span class="token operator">=</span> JsonFormat<span class="token punctuation">.</span>Shape<span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> pattern<span class="token operator">=</span><span class="token string">"dd/MM/yyyy"</span><span class="token punctuation">)</span>
+   <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.date}"</span><span class="token punctuation">,</span>
+   position <span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"31/12/2000"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+   <span class="token keyword">private</span> LocalDate dateOfBirth<span class="token punctuation">;</span>
+
+   <span class="token keyword">public</span> Client <span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Client</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> email<span class="token punctuation">,</span> cpf<span class="token punctuation">,</span> dateOfBirth<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>As notações:  <code>@ApiModelProperty</code> e  <code>@ApiModelProperty</code> são referentes a documentação do Swagger.</p>
+</blockquote>
+<p>Agora que criamos nossa classe <code>ClientDTO</code> que será responsável por determinar como deve ser recebidos os dados de um cliente, vamos também criar um DTO que será responsável por determinar como e quais dados serão enviados quando retornarmos um cliente. Chamaremos essa classe de <code>ClientDTOResponse</code>.</p>
+<ul>
+<li>Implementação da classe <code>ClientDTOResponse</code>:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@AllArgsConstructor</span><span class="token punctuation">(</span>access <span class="token operator">=</span> AccessLevel<span class="token punctuation">.</span>PRIVATE<span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Getter</span>
+<span class="token annotation punctuation">@ApiModel</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"ClientResponse"</span><span class="token punctuation">,</span> description <span class="token operator">=</span> <span class="token string">"Resposta esperada de um cliente"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ClientDTOResponse</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.id}"</span><span class="token punctuation">,</span>
+    position <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"1"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+    <span class="token keyword">private</span> Long id<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.name}"</span><span class="token punctuation">,</span>
+    position <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"Bob Brown"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+    <span class="token keyword">private</span> String name<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.email}"</span><span class="token punctuation">,</span>
+    position <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"exemple@exemple.com"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+    <span class="token keyword">private</span> String email<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.email}"</span><span class="token punctuation">,</span>
+    position <span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"146.674.500-29"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+    <span class="token keyword">private</span> String cpf<span class="token punctuation">;</span>
+
+    <span class="token annotation punctuation">@JsonFormat</span><span class="token punctuation">(</span>shape <span class="token operator">=</span> JsonFormat<span class="token punctuation">.</span>Shape<span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> pattern<span class="token operator">=</span><span class="token string">"dd/MM/yyyy"</span><span class="token punctuation">)</span>
+    <span class="token annotation punctuation">@ApiModelProperty</span><span class="token punctuation">(</span>notes <span class="token operator">=</span> <span class="token string">"${client.model.date}"</span><span class="token punctuation">,</span>
+    position <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span> example <span class="token operator">=</span> <span class="token string">"31/12/2000"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+    <span class="token keyword">private</span> LocalDate dateOfBirth<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> ClientDTOResponse <span class="token function">parseToDtoResponse</span><span class="token punctuation">(</span>Client client<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTOResponse</span><span class="token punctuation">(</span>client<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> client<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> 
+        client<span class="token punctuation">.</span><span class="token function">getEmail</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> client<span class="token punctuation">.</span><span class="token function">getCpf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                client<span class="token punctuation">.</span><span class="token function">getDateOfBirth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>As notações:  <code>@ApiModelProperty</code> e  <code>@ApiModelProperty</code> são referentes a documentação do Swagger.</p>
+</blockquote>
+<p>Com isso já temos nossa camada de entidade pronta e podemos começar a implementar a próxima camada da nossa aplicação.</p>
+<h3 id="criando-nossa-jpa-repository">4.2. Criando nossa JPA repository</h3>
+<p>A implementação do repository é muito simples, bastando apenas definirmos uma interface passando nossa entidade <code>Client</code> e o tipo do Id que o Spring fica responsável pelo restante. A implementação é a seguinte:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Repository</span>
+<span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">ClientRepository</span> <span class="token keyword">extends</span> <span class="token class-name">JpaRepository</span><span class="token operator">&lt;</span>Client<span class="token punctuation">,</span> Long<span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Só isso é o suficiente para que o Spring crie  e disponibilize vários métodos de pesquisa e manipulação da tabela <code>client</code>.</p>
+<h3 id="criando-a-nossa-camada-de-serviço">4.3. Criando a nossa camada de serviço</h3>
+<p>A camada de serviço será responsável por caso as regras de negócio do nosso projeto estejam sendo obedecidas, acessar o nosso repository e nos executar a ação desejada. A implementação para salvar um cliente fica da seguinte maneira:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Service</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ClientService</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@Autowired</span>
+    <span class="token keyword">private</span> ClientRepository clientRepository<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> Client <span class="token function">insert</span><span class="token punctuation">(</span>Client client<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">return</span> clientRepository<span class="token punctuation">.</span><span class="token function">save</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="criando-nosso-endpoint-clients">4.4. Criando nosso endpoint /clients</h3>
+<h4 id="criando-o-clientcontroller">Criando o ClientController</h4>
+<p>Agora iremos definir o endpoint da nossa aplicação, vamos implementar o mesmo da seguinte maneira:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@RestController</span>
+<span class="token annotation punctuation">@RequestMapping</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"/clients"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@Api</span><span class="token punctuation">(</span>tags <span class="token operator">=</span> <span class="token string">"Cliente"</span><span class="token punctuation">,</span> description <span class="token operator">=</span> <span class="token string">"Operações referentes a rota de cliente"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ClientController</span> <span class="token punctuation">{</span>
+
+    <span class="token annotation punctuation">@Autowired</span>
+    <span class="token keyword">private</span> ClientService clientService<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>As notações:  <code>@Api</code> é referente a documentação do Swagger,</p>
+</blockquote>
+<p>Agora que temos nosso controller com a implementação básica, podemos criar os testes referentes a ele.</p>
+<h4 id="criando-testes-unitários-para-o-nosso-endpoint">Criando testes unitários para o nosso endpoint</h4>
+<p>A base da nossa classe de teste deve ficar da seguinte maneira:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@RunWith</span><span class="token punctuation">(</span>SpringJUnit4ClassRunner<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ContextConfiguration</span><span class="token punctuation">(</span>classes <span class="token operator">=</span> <span class="token punctuation">{</span> ClientController<span class="token punctuation">.</span><span class="token keyword">class</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@AutoConfigureMockMvc</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ClientTest</span> <span class="token punctuation">{</span>
+    <span class="token keyword">private</span> <span class="token keyword">final</span> String BASE_URL <span class="token operator">=</span> <span class="token string">"/clients"</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">private</span> ObjectMapper objectMapper<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@Autowired</span>
+    <span class="token keyword">private</span> ClientController clientController<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@MockBean</span>
+    <span class="token keyword">private</span> ClientService clientService<span class="token punctuation">;</span>
+
+    <span class="token keyword">private</span> MockMvc mockMvc<span class="token punctuation">;</span>
+
+    DateTimeFormatter formatter <span class="token operator">=</span> DateTimeFormatter<span class="token punctuation">.</span><span class="token function">ofPattern</span><span class="token punctuation">(</span><span class="token string">"dd/MM/yyyy"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token annotation punctuation">@Before</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">setUp</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        objectMapper <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ObjectMapper</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        objectMapper<span class="token punctuation">.</span><span class="token function">registerModule</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">JavaTimeModule</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        mockMvc <span class="token operator">=</span> MockMvcBuilders<span class="token punctuation">.</span><span class="token function">standaloneSetup</span><span class="token punctuation">(</span>clientController<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Agora que já temos tudo que precisamos , podemos começar a criar os nossos testes.</p>
+<ul>
+<li>Testando o cadastro de um cliente com sucesso:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">insert_201</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span> <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span>
+	    LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Client client <span class="token operator">=</span> dto<span class="token punctuation">.</span><span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">thenReturn</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">post</span><span class="token punctuation">(</span>BASE_URL<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isCreated</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.name"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.email"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getEmail</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.cpf"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getCpf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	   <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.dateOfBirth"</span><span class="token punctuation">,</span> 
+			<span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getDateOfBirth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>formatter<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>Testando requisição com os dados inválidos:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">insert_400</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso"</span><span class="token punctuation">,</span> <span class="token string">"afonso@.com"</span><span class="token punctuation">,</span> <span class="token string">"123.456.789.10"</span><span class="token punctuation">,</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">withDayOfMonth</span><span class="token punctuation">(</span>LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDayOfMonth</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">post</span><span class="token punctuation">(</span>BASE_URL<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isBadRequest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>Testando requisição com dados duplicados:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span>expected <span class="token operator">=</span> NestedServletException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">insert_409</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span> <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">thenThrow</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DataIntegrityViolationException</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">post</span><span class="token punctuation">(</span>BASE_URL<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isConflict</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>Nesse teste fazemos uma requisição e esperamos que quando a nossa camada de serviço for fazer um insert, nos retorne</p>
+</blockquote>
+<h4 id="criando-a-implementação-para--fazer-o-teste-de-criação-de-cliente-passar">Criando a implementação para  fazer o teste de criação de cliente passar</h4>
+<p>Para nosso teste  passar, precisamos criar um método para que a rota /clients com o método POST que cadastre o cliente em nosso banco de dados. A implementação realizada foi a seguinte:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@PostMapping</span>
+<span class="token annotation punctuation">@ResponseStatus</span><span class="token punctuation">(</span>code <span class="token operator">=</span> HttpStatus<span class="token punctuation">.</span>CREATED<span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiOperation</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.post.value}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiResponses</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">201</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Retorna json com as informações cadastradas."</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">400</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Dados inválidos!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">409</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Dados duplicados!"</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> <span class="token function">insert</span><span class="token punctuation">(</span>
+        <span class="token annotation punctuation">@ApiParam</span><span class="token punctuation">(</span>name <span class="token operator">=</span> <span class="token string">"cliente"</span><span class="token punctuation">,</span> value <span class="token operator">=</span> <span class="token string">"${client.body}"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token annotation punctuation">@RequestBody</span> <span class="token annotation punctuation">@Valid</span> ClientDTO dto<span class="token punctuation">)</span><span class="token punctuation">{</span>
+
+    Client client <span class="token operator">=</span> clientService<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">ResponseEntity</span><span class="token operator">&lt;</span><span class="token operator">&gt;</span>
+    <span class="token punctuation">(</span>ClientDTOResponse<span class="token punctuation">.</span><span class="token function">parseToDtoResponse</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    HttpStatus<span class="token punctuation">.</span>CREATED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p>As notações:  <code>@ApiOperation</code>,  <code>@ApiResponses</code>, <code>@ApiResponse</code> e <code>@ApiParam</code>  são referentes a documentação do Swagger.</p>
+</blockquote>
+<p>Isso já irá fazer com o que o nosso  teste para a criação de cliente passe. E testando no Postman teremos a confirmação:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103468878-5256f200-4d34-11eb-99cd-1ebd14bcb12f.png"> 
+  </p>
+Verificando no H2 database teremos:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103485964-b4653500-4dd0-11eb-9513-ea6b6fbc4889.png"> 
+  </p>
+<h4 id="criando-classe-de-tratamento-de-exceções">Criando classe de tratamento de exceções</h4>
+<h5 id="trantando-o-erro-de-duplicação-de-dados">Trantando o erro de duplicação de dados:</h5>
+<p>Mas para o teste de dados duplicados com o status code 409.  Nossa API está retornado um erro 500.  Usando o Postman podemos ver que o resultado é esse:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103468442-5b919000-4d2f-11eb-84c9-0539d94c51b0.jpg"> 
+  </p>
+<p>Para resolvermos isso, vamos criar um exception handler, para capturarmos e tratarmos o erro.  A implementação desse handler ficou da seguinte maneira:</p>
+<ul>
+<li>classe que define o que será retornado:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@AllArgsConstructor</span>
+<span class="token annotation punctuation">@NoArgsConstructor</span>
+<span class="token annotation punctuation">@Getter</span>
+<span class="token annotation punctuation">@Setter</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">StandardError</span> <span class="token punctuation">{</span>
+
+	<span class="token annotation punctuation">@JsonFormat</span><span class="token punctuation">(</span>shape <span class="token operator">=</span> JsonFormat<span class="token punctuation">.</span>Shape<span class="token punctuation">.</span>STRING<span class="token punctuation">,</span> 
+	 pattern <span class="token operator">=</span> <span class="token string">"yyyy-MM-dd'T'HH:mm:ss'Z'"</span><span class="token punctuation">,</span> 
+	 timezone <span class="token operator">=</span> <span class="token string">"GMT"</span><span class="token punctuation">)</span>
+	<span class="token keyword">private</span> Instant timestamp<span class="token punctuation">;</span>
+	<span class="token keyword">private</span> Integer status<span class="token punctuation">;</span>
+	<span class="token keyword">private</span> String error<span class="token punctuation">;</span>
+	<span class="token keyword">private</span> String message<span class="token punctuation">;</span>
+	<span class="token keyword">private</span> String path<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>classe que captura e trata a exceção:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@RestControllerAdvice</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">GeneralExceptionHandler</span><span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ExceptionHandler</span><span class="token punctuation">(</span>DataIntegrityViolationException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>StandardError<span class="token operator">&gt;</span>
+		     <span class="token function">duplicateDataConstraint</span><span class="token punctuation">(</span>DataIntegrityViolationException e<span class="token punctuation">,</span>
+            HttpServletRequest request<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        String error <span class="token operator">=</span> <span class="token function">getField</span><span class="token punctuation">(</span>e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" já existe nos registros do sistema!"</span><span class="token punctuation">;</span>
+        HttpStatus status <span class="token operator">=</span> HttpStatus<span class="token punctuation">.</span>CONFLICT<span class="token punctuation">;</span>
+        StandardError err <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StandardError</span><span class="token punctuation">(</span>Instant<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> 
+        status<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> error<span class="token punctuation">,</span> e<span class="token punctuation">.</span><span class="token function">getCause</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                request<span class="token punctuation">.</span><span class="token function">getRequestURI</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span>status<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">body</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">public</span> String <span class="token function">getField</span><span class="token punctuation">(</span>String error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>error<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token string">"EMAIL"</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token string">"O E-mail"</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> <span class="token string">"O CPF"</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p>Através do <code>@ExceptionHandler(ConstraintViolationException.class)</code> nós iremos capturar as exceções do tipo <code>ConstraintViolationException</code> e tratar ela de maneira personalizada retornando o status code esperado pelo nosso teste. Testando a requisição com um email já cadastrado no Postman, teremos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103485920-49b3f980-4dd0-11eb-9085-f10295d5fc2a.png"> 
+  </p>
+<hr>
+<h5 id="tratanteando-a-exceção-para-requisições-com-dados-inválidos">Tratanteando a exceção para requisições com dados inválidos</h5>
+<p>Quando fazemos uma requisição POST com dados inválidos o status code retornado é 400. Isso é o suficiente para o teste passar,  mas a resposta não retorna nenhum detalhe do porque a requisição falhou. Podemos ver o que retornado abaixo:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103468989-76670300-4d35-11eb-994f-503c73b5cf9e.jpg"> 
+  </p>
+<p>Já existe um método que trata essas requisições, então iremos sobrescrever esse método para retornar uma lista com todas as informações inválidas. Essa implementação ficou assim:</p>
+<ul>
+<li>classe do erro de validação:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@AllArgsConstructor</span>
+<span class="token annotation punctuation">@Getter</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ErrorObject</span><span class="token punctuation">{</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> String message<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> String field<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> Object parameter<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>classe que contem a lista de erros de validação</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token keyword">import</span> lombok<span class="token punctuation">.</span>AllArgsConstructor<span class="token punctuation">;</span>
+<span class="token keyword">import</span> lombok<span class="token punctuation">.</span>Getter<span class="token punctuation">;</span>
+<span class="token annotation punctuation">@AllArgsConstructor</span>
+<span class="token annotation punctuation">@Getter</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ErrorResponse</span> <span class="token punctuation">{</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> String message<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> <span class="token keyword">int</span> code<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> String status<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> String objectName<span class="token punctuation">;</span>
+  <span class="token keyword">private</span> <span class="token keyword">final</span> List<span class="token operator">&lt;</span>ErrorObject<span class="token operator">&gt;</span> errors<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+</code></pre>
+<ul>
+<li>Sobrescrita do método de argumentos inválidos:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@RestControllerAdvice</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">RestExceptionHandler</span> <span class="token keyword">extends</span> <span class="token class-name">ResponseEntityExceptionHandler</span> <span class="token punctuation">{</span>
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+  <span class="token annotation punctuation">@Override</span>
+  <span class="token keyword">protected</span> ResponseEntity<span class="token operator">&lt;</span>Object<span class="token operator">&gt;</span> <span class="token function">handleMethodArgumentNotValid</span>
+	  <span class="token punctuation">(</span>MethodArgumentNotValidException ex<span class="token punctuation">,</span>
+		  HttpHeaders headers<span class="token punctuation">,</span> HttpStatus status<span class="token punctuation">,</span> WebRequest request<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    List<span class="token operator">&lt;</span>ErrorObject<span class="token operator">&gt;</span> errors <span class="token operator">=</span> <span class="token function">getErrors</span><span class="token punctuation">(</span>ex<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ErrorResponse errorResponse <span class="token operator">=</span> <span class="token function">getErrorResponse</span><span class="token punctuation">(</span>ex<span class="token punctuation">,</span> status<span class="token punctuation">,</span> errors<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">ResponseEntity</span><span class="token operator">&lt;</span><span class="token operator">&gt;</span><span class="token punctuation">(</span>errorResponse<span class="token punctuation">,</span> status<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">private</span> ErrorResponse <span class="token function">getErrorResponse</span><span class="token punctuation">(</span>MethodArgumentNotValidException ex<span class="token punctuation">,</span>
+  HttpStatus status<span class="token punctuation">,</span> List<span class="token operator">&lt;</span>ErrorObject<span class="token operator">&gt;</span> errors<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">ErrorResponse</span><span class="token punctuation">(</span><span class="token string">"Requisição possui campos inválidos"</span><span class="token punctuation">,</span> status<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    status<span class="token punctuation">.</span><span class="token function">getReasonPhrase</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ex<span class="token punctuation">.</span><span class="token function">getBindingResult</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getObjectName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> errors<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">private</span> List<span class="token operator">&lt;</span>ErrorObject<span class="token operator">&gt;</span> <span class="token function">getErrors</span><span class="token punctuation">(</span>MethodArgumentNotValidException ex<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> ex<span class="token punctuation">.</span><span class="token function">getBindingResult</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getFieldErrors</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">stream</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>error <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token keyword">new</span> <span class="token class-name">ErrorObject</span><span class="token punctuation">(</span>error<span class="token punctuation">.</span><span class="token function">getDefaultMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> 
+	    error<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> error<span class="token punctuation">.</span><span class="token function">getRejectedValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span>Collectors<span class="token punctuation">.</span><span class="token function">toList</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Agora que quando nós realizamos requisições com dados invalidos, será retornado uma resposta com uma lista dos dados inválidos e essa lista terá o parâmetro inválido, a mensagem de erro e o valor inválido passado. Fazendo uma requisição com dados inválidos, temos a seguinte resposta:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103469125-2426e180-4d37-11eb-8f57-0a8683bfae08.png"> 
+  </p>
+<p>Assim além do nosso teste passar, temos uma resposta descritiva do que aconteceu para a requisição falhar.</p>
+<p>Com isso, todas as nossas regras de negócios estão sendo obedecidas de forma satisfatória.</p>
+<h3 id="testando-nossa-aplicação-em-um-banco-de-dados-postgresql">4.5. Testando nossa aplicação em um banco de dados postgreSQL</h3>
+<p>Para testarmos a nossa aplicação em um banco de dados instalado localmente, vamos alterar o perfil para <a href="https://github.com/scriptzeiro/api-banco-xyz/blob/master/src/main/resources/application-dev.properties">dev</a> e criar um banco de dados com o nome: bancoxyz no PgAdmin. Após isso vamos fazer uma requisição:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103468878-5256f200-4d34-11eb-99cd-1ebd14bcb12f.png"> 
+  </p>
+<p>Com a resposta de sucesso da requisição, podemos fazer um select e verificar se o registro se encontra no banco de dados.<br>
+Quando executado:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span> <span class="token operator">*</span> <span class="token keyword">FROM</span> client
+</code></pre>
+<p>Temos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103469383-5f76df80-4d3a-11eb-8244-5963fac9060b.png"> 
+  </p>
+<p>E com isso temos a confirmação  de que está tudo funcionando corretamente com a nossa integração com um banco de dados real</p>
+<h3 id="documentação-do-swagger">4.6. Documentação do Swagger</h3>
+<p>Com as notações definidas no controller e nos DTOs, a nossa documentação já está pronta. Para acessarmos a mesma, na URL da nossa aplicação, basta adicionarmos /swagger-ui.html e acessaremos a seguinte pagina:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103469476-c21cab00-4d3b-11eb-8990-6bddf3b73f6b.png"> 
+  </p>
+Expandindo as operações, teremos as informações da rota POST. Na primeira parte, teremos um exemplo de uma resposta de sucesso com um JSON de exemplo.
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103469529-52f38680-4d3c-11eb-9dfe-cb7a16b148f4.png"> 
+  </p>
+<p>Mais abaixo na página, teremos um input que pode ser usado para testar as requisições dessa rota,  abaixo tendo os demais status code que podem ser retornados e ao lado um exemplo de JSON de uma requisição válida.</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103469573-ce553800-4d3c-11eb-8376-8c5c5d6665ee.png"> 
+  </p>
+<h2 id="nem-só-de-post-vive-uma-api">5. Nem só de POST vive uma API</h2>
+<p>Bom apesar de todos os requisitos passados a nós já estarem sendo cumpridos, nossa API só faz uma coisa: cadastrar clientes. Isso é o que foi pedido, mas para termos uma API completa que realiza todas as operações, vamos implementas os métodos HTTP de GET, PUT e DELETE, para termos uma API que realiza todas as operações esperadas.</p>
+<h3 id="melhorando-a-nossa-entidade-client">5.1. Melhorando a nossa entidade client</h3>
+<p>A primeira coisa que vamos fazer é apenas adicionar <code>@Setter</code> na classe <code>Client</code> para conseguir alterar as propriedades.<br>
+Após isso, como sabemos que iremos retornar uma lista com todos os clientes, teremos que adicionar outro método na classe <code>ClientDTOResponse</code> que irá transformar uma lista de <code>Client</code> em uma lista de <code>ClientResponse</code>. A implementação será a seguinte:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> List<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> <span class="token function">parseListToDtoResponse</span><span class="token punctuation">(</span>List<span class="token operator">&lt;</span>Client<span class="token operator">&gt;</span> clients<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    List<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>Client c <span class="token operator">:</span> clients<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token function">parseToDtoResponse</span><span class="token punctuation">(</span>c<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> list<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Com isso nossa camada de serviço está pronta e podemos seguir com a implementação.</p>
+<h3 id="melhorando-a-camada-de-serviço">5.2. Melhorando a camada de serviço</h3>
+<p>A base da nossa aplicação já está pronta.<br>
+O primeiro passo é adicionar os outros métodos de manipulação do banco de dados na nossa camada de serviço. Mas antes irei criar uma exceção personalizada para ser lançada caso não seja encontrado nada. Ela ficará dessa forma:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">ResourceNotFoundException</span> <span class="token keyword">extends</span> <span class="token class-name">RuntimeException</span> <span class="token punctuation">{</span>
+
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">long</span> serialVersionUID <span class="token operator">=</span> 1L<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token function">ResourceNotFoundException</span><span class="token punctuation">(</span>String msg<span class="token punctuation">,</span> Object id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">super</span><span class="token punctuation">(</span>msg<span class="token operator">+</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>E iremos dar a capacidade de manipular esse tipo de exceção adicionando o seguinte método:</p>
+<pre class=" language-java"><code class="prism  language-java"> <span class="token annotation punctuation">@ExceptionHandler</span><span class="token punctuation">(</span>ResourceNotFoundException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>StandardError<span class="token operator">&gt;</span> <span class="token function">resourceNotFound</span><span class="token punctuation">(</span>
+    ResourceNotFoundException e<span class="token punctuation">,</span> HttpServletRequest request<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        String error <span class="token operator">=</span> <span class="token string">"Não foi encontrado nenhum registro no sistema!"</span><span class="token punctuation">;</span>
+        HttpStatus status <span class="token operator">=</span> HttpStatus<span class="token punctuation">.</span>NOT_FOUND<span class="token punctuation">;</span>
+        StandardError err <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StandardError</span><span class="token punctuation">(</span>Instant<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+         status<span class="token punctuation">.</span><span class="token function">value</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> error<span class="token punctuation">,</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                request<span class="token punctuation">.</span><span class="token function">getRequestURI</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">status</span><span class="token punctuation">(</span>status<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">body</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p>Com isso feito já podemos continuar.<br>
+Agora podemos adicionar os demais métodos necessários na nossa classe <code>ClientSerice</code></p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token comment">//mensagem padrão para o caso de não encontrar nada.</span>
+<span class="token keyword">private</span>  String  notFoundMsg <span class="token operator">=</span> <span class="token string">"Não possível "</span><span class="token operator">+</span>
+	<span class="token string">"encontrar o registro com id: "</span><span class="token punctuation">;</span>
+<span class="token keyword">public</span> List<span class="token operator">&lt;</span>Client<span class="token operator">&gt;</span> <span class="token function">findAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> clientRepository<span class="token punctuation">.</span><span class="token function">findAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">public</span> Client <span class="token function">findById</span><span class="token punctuation">(</span>Long id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    Optional<span class="token operator">&lt;</span>Client<span class="token operator">&gt;</span> obj <span class="token operator">=</span> clientRepository<span class="token punctuation">.</span><span class="token function">findById</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> obj<span class="token punctuation">.</span><span class="token function">orElseThrow</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span>notFoundMsg<span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">deleteById</span><span class="token punctuation">(</span>Long id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        clientRepository<span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">EmptyResultDataAccessException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span>notFoundMsg<span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">public</span> Client <span class="token function">update</span><span class="token punctuation">(</span>Long id<span class="token punctuation">,</span> Client obj<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">try</span> <span class="token punctuation">{</span>
+        Client client <span class="token operator">=</span> clientRepository<span class="token punctuation">.</span><span class="token function">findById</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">updateData</span><span class="token punctuation">(</span>client<span class="token punctuation">,</span> obj<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> clientRepository<span class="token punctuation">.</span><span class="token function">save</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">NoSuchElementException</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span>notFoundMsg<span class="token punctuation">,</span> id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">private</span> <span class="token keyword">void</span> <span class="token function">updateData</span><span class="token punctuation">(</span>Client client<span class="token punctuation">,</span> Client obj<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    client<span class="token punctuation">.</span><span class="token function">setName</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    client<span class="token punctuation">.</span><span class="token function">setEmail</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getEmail</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    client<span class="token punctuation">.</span><span class="token function">setCpf</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getCpf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    client<span class="token punctuation">.</span><span class="token function">setDateOfBirth</span><span class="token punctuation">(</span>obj<span class="token punctuation">.</span><span class="token function">getDateOfBirth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Com isso nossa camada de serviço está pronta para o nosso controller conseguir suportar as demais operações.</p>
+<h3 id="dando-suporte-para-get-put-e-delete">5.3. Dando suporte para: GET, PUT e DELETE</h3>
+<h4 id="criando-os-métodos-get">Criando os métodos GET</h4>
+<p>Para buscar todos os usuário, não iremos realizar testes unitários, pois a resposta da nossa API sempre vai ser um Array. A implementação da busca de todos os usuários ficou da seguinte maneira:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@ApiOperation</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.get.value}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiResponses</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Todos os clientes retornados com sucesso."</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@GetMapping</span>
+<span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>List<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;&gt;</span> <span class="token function">findAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    List<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> clients <span class="token operator">=</span> ClientDTOResponse
+        <span class="token punctuation">.</span><span class="token function">parseListToDtoResponse</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">findAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">ok</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">body</span><span class="token punctuation">(</span>clients<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Testando uma requisição no Postman temos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493605-b4812700-4e08-11eb-90ae-1c71201d3d96.png"> 
+  </p>
+e para os casos de clientes cadastrados temos:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493672-104bb000-4e09-11eb-98a1-834248821b9f.png"> 
+  </p>
+<hr>
+<p>Agora para a busca de um usuário por id, nossa API pode ou não encontrar, então vamos desenvolver os testes para esses casos:</p>
+<ul>
+<li>teste de busca com sucesso:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">findById_200</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+        ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span> 
+        <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span>
+        LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Client client <span class="token operator">=</span> dto<span class="token punctuation">.</span><span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">findById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">thenReturn</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">get</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span>
+	             MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isOk</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.name"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.email"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getEmail</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.cpf"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getCpf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.dateOfBirth"</span><span class="token punctuation">,</span>
+             <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getDateOfBirth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>formatter<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">;</span>
+
+        <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">findById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>teste de busca para o caso de não encontrar nada:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span>expected <span class="token operator">=</span> NestedServletException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">findById_404</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+        <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">thenThrow</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">,</span> 1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">delete</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isNoContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p>Para fazermos nossos testes passarem, como já estamos capturando as exceções de not found, basta implementarmos o método de busca por id que firará assim:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@ApiOperation</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.getid.value}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiResponses</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Retorna json com o cliente encontrado."</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">404</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Nenhum cliente encontrado"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@GetMapping</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"/{id}"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> <span class="token function">findById</span><span class="token punctuation">(</span>
+        <span class="token annotation punctuation">@ApiParam</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.getid.param}"</span><span class="token punctuation">,</span> 
+	        required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token annotation punctuation">@PathVariable</span> Long id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    Client client <span class="token operator">=</span> clientService<span class="token punctuation">.</span><span class="token function">findById</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">ok</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">body</span><span class="token punctuation">(</span>ClientDTOResponse
+    <span class="token punctuation">.</span><span class="token function">parseToDtoResponse</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Testando a busca de um cliente temos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494002-12af0980-4e0b-11eb-8d55-31929337ea67.png"> 
+  </p>
+E quando não é encontrado nenhum cliente, nos é retornado:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494022-25c1d980-4e0b-11eb-84f9-c6452e6a3c5a.png"> 
+  </p>
+<h4 id="criando-o-método-de-put">Criando o método de PUT</h4>
+<p>Como o método de put além de pesquisar o cliente também atualiza os dados, então vamos desenvolver um teste para o caso de sucesso e para os casos em que nossa requisição falha.</p>
+<ul>
+<li>teste para o caso atualização com sucesso:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">update_201</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span> <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Client client <span class="token operator">=</span> dto<span class="token punctuation">.</span><span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">thenReturn</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">put</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isOk</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.name"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.email"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getEmail</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.cpf"</span><span class="token punctuation">,</span> <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getCpf</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">jsonPath</span><span class="token punctuation">(</span><span class="token string">"$.dateOfBirth"</span><span class="token punctuation">,</span>
+	         <span class="token function">is</span><span class="token punctuation">(</span>dto<span class="token punctuation">.</span><span class="token function">getDateOfBirth</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>formatter<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span> <span class="token punctuation">,</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>teste para cliente não encontrado:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span>expected <span class="token operator">=</span> NestedServletException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">update_404</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span>
+     <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span> LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">thenThrow</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">,</span> 1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">put</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isNotFound</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>teste para dados inválidos:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">update_400</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso"</span><span class="token punctuation">,</span> <span class="token string">"afonso@.com"</span><span class="token punctuation">,</span> <span class="token string">"123.456.789.10"</span><span class="token punctuation">,</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">withDayOfMonth</span><span class="token punctuation">(</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDayOfMonth</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">put</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span>
+	    <span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isBadRequest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>teste para e-mail ou CPF já existente:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span>expected <span class="token operator">=</span> NestedServletException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">update_409</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+    ClientDTO dto <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ClientDTO</span><span class="token punctuation">(</span><span class="token string">"Afonso Mateus"</span><span class="token punctuation">,</span> <span class="token string">"afonso@gmail.com"</span><span class="token punctuation">,</span> <span class="token string">"02654220273"</span><span class="token punctuation">,</span>
+    LocalDate<span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token string">"2000-04-23"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">thenThrow</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">DataIntegrityViolationException</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">put</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">content</span><span class="token punctuation">(</span>objectMapper<span class="token punctuation">.</span><span class="token function">writeValueAsString</span><span class="token punctuation">(</span>dto<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">header</span><span class="token punctuation">(</span>HttpHeaders<span class="token punctuation">.</span>CONTENT_TYPE<span class="token punctuation">,</span> MediaType<span class="token punctuation">.</span>APPLICATION_JSON<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isConflict</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">(</span>Client<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Como nosso exception handler já trata todos esses casos, para o nosso teste passar, basta implementarmos o método que atualiza o cliente em nosso controller</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@PutMapping</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"/{id}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiOperation</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.put.value}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiResponses</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Retorna json com as informações atualizadas."</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">400</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Dados inválidos!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">404</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Nenhum cliente encontrado"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">409</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Dados duplicados!"</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> <span class="token function">updateById</span><span class="token punctuation">(</span>
+        <span class="token annotation punctuation">@ApiParam</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.put.param}"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token annotation punctuation">@PathVariable</span> Long id<span class="token punctuation">,</span>
+        <span class="token annotation punctuation">@ApiParam</span><span class="token punctuation">(</span>name <span class="token operator">=</span> <span class="token string">"cliente"</span><span class="token punctuation">,</span> value <span class="token operator">=</span> <span class="token string">"${client.put.body}"</span><span class="token punctuation">,</span> required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token annotation punctuation">@RequestBody</span> <span class="token annotation punctuation">@Valid</span> ClientDTO dto<span class="token punctuation">)</span><span class="token punctuation">{</span>
+
+    Client client <span class="token operator">=</span> clientService<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>id<span class="token punctuation">,</span> dto<span class="token punctuation">.</span><span class="token function">parseToClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">ok</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	    <span class="token punctuation">.</span><span class="token function">body</span><span class="token punctuation">(</span>ClientDTOResponse<span class="token punctuation">.</span><span class="token function">parseToDtoResponse</span><span class="token punctuation">(</span>client<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Agora testando no Postman temos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493909-6cfb9a80-4e0a-11eb-86d5-2a6946d0d64e.png"> 
+  </p>
+E verificamos o resultado no banco de dados temos a confirmação:
+<p align="center">
+Antes <br>
+	<img src="https://user-images.githubusercontent.com/48936532/103493874-52c1bc80-4e0a-11eb-8438-d74f209c4599.png"> 
+  </p>
+  <p align="center">
+Depois<br>
+	<img src="https://user-images.githubusercontent.com/48936532/103493951-b51abd00-4e0a-11eb-9851-c9f8fb71161e.png"> 
+  </p>
+Para os casos de não encontrar o cliente temos:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493828-ffe80500-4e09-11eb-8979-a0accbd35ded.png"> 
+  </p>
+Para o caso de dados inválidos teremos:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493807-da5afb80-4e09-11eb-8e9b-5cf4a4567ac7.png"> 
+  </p>
+<p>E para o caso do CPF ou E-mail já existente teremos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103493730-60c30d80-4e09-11eb-9442-6293efe1f37d.png"> 
+  </p>
+<h4 id="criando-o-método-de-delete">Criando o método de DELETE</h4>
+<p>Para o caso de delete, como não temos nenhum relacionamento entre tabelas, vamos ter o caso de o cliente ser deletado e o do cliente não ser encontrado. Os testes serão os seguintes:</p>
+<ul>
+<li>Teste de cliente deletado com sucesso:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">delete_204</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+    <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">thenReturn</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">delete</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isNoContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>Teste de cliente não encontrado:</li>
+</ul>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@Test</span><span class="token punctuation">(</span>expected <span class="token operator">=</span> NestedServletException<span class="token punctuation">.</span><span class="token keyword">class</span><span class="token punctuation">)</span>
+    <span class="token keyword">public</span> <span class="token keyword">void</span> <span class="token function">delete_404</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">throws</span> Exception <span class="token punctuation">{</span>
+        <span class="token function">when</span><span class="token punctuation">(</span>clientService<span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">thenThrow</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ResourceNotFoundException</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">,</span> 1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        mockMvc<span class="token punctuation">.</span><span class="token function">perform</span><span class="token punctuation">(</span><span class="token function">delete</span><span class="token punctuation">(</span>BASE_URL <span class="token operator">+</span> <span class="token string">"/1"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">andExpect</span><span class="token punctuation">(</span><span class="token function">status</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">isNotFound</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">verify</span><span class="token punctuation">(</span>clientService<span class="token punctuation">,</span> <span class="token function">times</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span><span class="token function">eq</span><span class="token punctuation">(</span>1L<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p>Para nossos testes passarem, basta realizarmos a implementação do método de delete. Ficará da seguinte maneira:</p>
+<pre class=" language-java"><code class="prism  language-java"><span class="token annotation punctuation">@ResponseStatus</span><span class="token punctuation">(</span>code <span class="token operator">=</span> HttpStatus<span class="token punctuation">.</span>NO_CONTENT<span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiOperation</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.delete.value}"</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@ApiResponses</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">204</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Cliente deletado com sucesso."</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token annotation punctuation">@ApiResponse</span><span class="token punctuation">(</span>code <span class="token operator">=</span> <span class="token number">404</span><span class="token punctuation">,</span> message <span class="token operator">=</span> <span class="token string">"Nenhum cliente encontrado"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token annotation punctuation">@DeleteMapping</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"/{id}"</span><span class="token punctuation">)</span>
+<span class="token keyword">public</span> ResponseEntity<span class="token operator">&lt;</span>ClientDTOResponse<span class="token operator">&gt;</span> <span class="token function">deleteById</span><span class="token punctuation">(</span>
+        <span class="token annotation punctuation">@ApiParam</span><span class="token punctuation">(</span>value <span class="token operator">=</span> <span class="token string">"${client.delete.param}"</span><span class="token punctuation">,</span> 
+        required <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token annotation punctuation">@PathVariable</span> Long id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+    clientService<span class="token punctuation">.</span><span class="token function">deleteById</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> ResponseEntity<span class="token punctuation">.</span><span class="token function">noContent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Quando deletarmos um cliente teremos:</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494102-7cc7ae80-4e0b-11eb-9d35-b9be74e1e40d.png"> 
+  </p>
+E verificando no banco de dados podemos ver que o registro não existe mais.
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494126-99fc7d00-4e0b-11eb-971c-a85a378f4c9d.png"> 
+  </p>
+Para os casos de não encontrar o cliente teremos:
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494070-628dd080-4e0b-11eb-9a16-35229bdaf875.png"> 
+  </p>
+<h3 id="consultando--nossa-documentação">5.4. Consultando  nossa documentação</h3>
+<p>Ao consultar a documentação swagger já podemos indentificar todos os métodos HTTPs criados durante o projeto.</p>
+<p align="center">
+	<img src="https://user-images.githubusercontent.com/48936532/103494284-7c7be300-4e0c-11eb-9c9e-3fc0a94267c4.png
+"> 
+  </p>
+<h3 id="indo-um-pouquinho-mais-além">5.5. Indo um pouquinho mais além</h3>
+<p>Eu irei deixar essa documentação como pagina index desse projeto, então esse mesmo artigo pode ser consultado lá.<br>
+Eu também realizei o deploy desse projeto no heroku, mas como eu não utilizo o hobby, ela não vai estar disponpivel 24/7.</p>
+<h2 id="conclusão">6. Conclusão</h2>
+<p>Agora nossa aplicação está cumprindo os requisitos passados, para isso nós utilizamos de várias técnicas do Spring, como: injeção de dependência e validação de dados. Utilizamos padrões de projeto como o DTO, criamos nossas próprias validações, tratamos as exceções, criamos nosso testes. Mas apesar disso tudo o mais importante é que adquirimos mais conhecimento no processo. Conhecimentos que independem da tecnologia usada.<br>
+Gostaria de agradecer a vocês pela oportunidade independente do resultado. Eu realmente me diverti muito realizado esse desafio e só por isso valeu a pena. Obrigado!</p>
+
+    </div>
+  </div>
+  <style>
+   .style{
+      background-color:black;
+      width: 320px;
+   }
+   .style a{
+   	  color: white !important;
+      font-weight: bolder !important;
+   }
+   .style a:hover{
+   	  background-color: rgb(171,171,171, 0.2) !important;
+   }
+   li{
+	margin: 7px !important;
+   }
+    </style>
+</body>
+	
+</html>
