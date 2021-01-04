@@ -48,6 +48,18 @@ public class ClientController {
         Client client = clientService.insert(dto.parseToClient());
         return new ResponseEntity<>(ClientDTOResponse.parseToDtoResponse(client), HttpStatus.CREATED);
     }
+
+    @ApiOperation(value = "${client.get.value}")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Todos os clientes retornados com sucesso."),
+    })
+    @GetMapping
+    public ResponseEntity<List<ClientDTOResponse>> findAll() {
+        List<ClientDTOResponse> clients = ClientDTOResponse
+            .parseListToDtoResponse(clientService.findAll());
+            return ResponseEntity.ok().body(clients);
+    }
+
     @ApiOperation(value = "${client.getid.value}")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Retorna json com o cliente encontrado."),
