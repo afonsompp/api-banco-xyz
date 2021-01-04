@@ -1,10 +1,14 @@
 package br.com.bancoxyz.controller;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
+
 @RestController
 @RequestMapping(value = "/clients")
 @Api(tags = "Cliente", description = "Operações referentes a rota de cliente")
@@ -43,4 +48,17 @@ public class ClientController {
         Client client = clientService.insert(dto.parseToClient());
         return new ResponseEntity<>(ClientDTOResponse.parseToDtoResponse(client), HttpStatus.CREATED);
     }
+    @ApiOperation(value = "${client.getid.value}")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Retorna json com o cliente encontrado."),
+        @ApiResponse(code = 404, message = "Nenhum cliente encontrado"),
+    })
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ClientDTOResponse> findById(
+            @ApiParam(value = "${client.getid.param}", required = true)
+            @PathVariable Long id) {
+        Client client = clientService.findById(id);
+        return ResponseEntity.ok().body(ClientDTOResponse.parseToDtoResponse(client));
+    }
+
 }
