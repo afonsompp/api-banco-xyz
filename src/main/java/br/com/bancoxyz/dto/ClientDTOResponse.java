@@ -1,6 +1,8 @@
 package br.com.bancoxyz.dto;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -37,5 +39,13 @@ public class ClientDTOResponse {
     public static ClientDTOResponse parseToDtoResponse(Client client) {
         return new ClientDTOResponse(client.getId(), client.getName(), client.getEmail(), client.getCpf(),
                 client.getDateOfBirth());
+    }
+
+    public static List<ClientDTOResponse> parseListToDtoResponse(List<Client> clients) {
+        List<ClientDTOResponse> list = new ArrayList<ClientDTOResponse>();
+        for (Client c : clients) {
+            list.add(parseToDtoResponse(c));
+        }
+        return list;
     }
 }
