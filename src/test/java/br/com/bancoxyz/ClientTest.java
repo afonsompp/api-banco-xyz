@@ -32,6 +32,9 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import br.com.bancoxyz.controller.ClientController;
 import br.com.bancoxyz.dto.ClientDTO;
@@ -135,6 +138,67 @@ public class ClientTest {
             .andExpect(status().isNoContent());
 
         verify(clientService, times(1)).deleteById(eq(1L));
+    }
+
+    @Test
+    public void update_201() throws Exception {
+
+        ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
+        LocalDate.parse("2000-04-23"));
+        Client client = dto.parseToClient();
+
+        when(clientService.update(eq(1L), any(Client.class))).thenReturn(client);
+
+        mockMvc.perform(put(BASE_URL + "/1").content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(dto.getName())))
+            .andExpect(jsonPath("$.email", is(dto.getEmail())))
+            .andExpect(jsonPath("$.cpf", is(dto.getCpf())))
+            .andExpect(jsonPath("$.dateOfBirth", is(dto.getDateOfBirth().format(formatter))));
+
+        verify(clientService, times(1)).update(eq(1L) ,any(Client.class));
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void update_409() throws Exception {
+        ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
+        LocalDate.parse("2000-04-23"));
+        when(clientService.update(eq(1L), any(Client.class))).thenThrow(new DataIntegrityViolationException(""));
+
+        mockMvc.perform(put(BASE_URL + "/1").content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isConflict());
+
+        verify(clientService, times(0)).insert(any(Client.class));
+    }
+
+    @Test()
+    public void update_400() throws Exception {
+
+        ClientDTO dto = new ClientDTO("Afonso", "afonso@.com", "123.456.789.10",
+        LocalDate.now().withDayOfMonth(LocalDate.now().getDayOfMonth() + 1));
+
+        mockMvc.perform(put(BASE_URL + "/1").content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+
+        verify(clientService, times(0)).insert(any(Client.class));
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void update_404() throws Exception {
+
+        ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
+        LocalDate.parse("2000-04-23"));
+
+        when(clientService.update(eq(1L), any(Client.class)))
+            .thenThrow(new ResourceNotFoundException("", 1L));
+        mockMvc.perform(put(BASE_URL + "/1").content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+
+        verify(clientService, times(0)).update(eq(1L), any(Client.class));
     }
 
 }
