@@ -201,4 +201,24 @@ public class ClientTest {
         verify(clientService, times(0)).update(eq(1L), any(Client.class));
     }
 
+    @Test(expected = NestedServletException.class)
+    public void delete_404() throws Exception {
+        when(clientService.deleteById(eq(1L)))
+            .thenThrow(new ResourceNotFoundException("", 1L));
+        mockMvc.perform(delete(BASE_URL + "/1"))
+            .andExpect(status().isNotFound());
+
+        verify(clientService, times(0)).deleteById(eq(1L));
+    }
+
+    @Test()
+    public void delete_204() throws Exception {
+        when(clientService.deleteById(eq(1L)))
+            .thenReturn(true);
+        mockMvc.perform(delete(BASE_URL + "/1"))
+            .andExpect(status().isNoContent());
+
+        verify(clientService, times(1)).deleteById(eq(1L));
+    }
+
 }
