@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -73,4 +74,22 @@ public class ClientController {
         return ResponseEntity.ok().body(ClientDTOResponse.parseToDtoResponse(client));
     }
 
+
+    @PutMapping(value = "/{id}")
+    @ApiOperation(value = "${client.put.value}")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Retorna json com as informações atualizadas."),
+        @ApiResponse(code = 400, message = "Dados inválidos!"),
+        @ApiResponse(code = 404, message = "Nenhum cliente encontrado"),
+        @ApiResponse(code = 409, message = "Dados duplicados!")
+    })
+    public ResponseEntity<ClientDTOResponse> updateById(
+            @ApiParam(value = "${client.put.param}", required = true)
+            @PathVariable Long id,
+            @ApiParam(name = "cliente", value = "${client.put.body}", required = true)
+            @RequestBody @Valid ClientDTO dto){
+
+        Client client = clientService.update(id, dto.parseToClient());
+        return ResponseEntity.ok().body(ClientDTOResponse.parseToDtoResponse(client));
+    }
 }
