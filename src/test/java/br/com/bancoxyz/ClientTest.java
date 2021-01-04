@@ -22,6 +22,7 @@ import org.springframework.web.util.NestedServletException;
 import org.springframework.http.MediaType;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import br.com.bancoxyz.controller.ClientController;
 import br.com.bancoxyz.dto.ClientDTO;
+import br.com.bancoxyz.error.exception.ResourceNotFoundException;
 import br.com.bancoxyz.model.Client;
 import br.com.bancoxyz.service.ClientService;
 
@@ -106,4 +108,33 @@ public class ClientTest {
 
         verify(clientService, times(0)).insert(any(Client.class));
     }
+
+    @Test()
+    public void findById_200() throws Exception {
+        ClientDTO dto = new ClientDTO("Afonso Mateus", "afonso@gmail.com", "02654220273",
+        LocalDate.parse("2000-04-23"));
+        Client client = dto.parseToClient();
+
+        when(clientService.findById(eq(1L))).thenReturn(client);
+        mockMvc.perform(get(BASE_URL + "/1").content(objectMapper.writeValueAsString(dto))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(dto.getName())))
+            .andExpect(jsonPath("$.email", is(dto.getEmail())))
+            .andExpect(jsonPath("$.cpf", is(dto.getCpf())))
+            .andExpect(jsonPath("$.dateOfBirth", is(dto.getDateOfBirth().format(formatter))));;
+
+        verify(clientService, times(1)).findById(eq(1L));
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void findById_404() throws Exception {
+        when(clientService.deleteById(eq(1L)))
+            .thenThrow(new ResourceNotFoundException("", 1L));
+        mockMvc.perform(delete(BASE_URL + "/1"))
+            .andExpect(status().isNoContent());
+
+        verify(clientService, times(1)).deleteById(eq(1L));
+    }
+
 }
